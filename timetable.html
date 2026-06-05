@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 Padhai aur Kaam ka Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="mb-4 flex justify-between items-center">
+            <a href="dashboard.php" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Dashboard</a>
+        </div>
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">📅 Study & Work Time-Table</h1>
+            <p class="text-gray-500 mt-1">Apna hafte ka target aur time-slot set karein</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Naya Slot Jodein</h2>
+                <form id="timetableForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Din (Day)</label>
+                        <select id="day" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Time (e.g., 10:00 AM - 12:00 PM)</label>
+                        <input type="text" id="timeSlot" required placeholder="e.g., 06:00 AM - 08:00 AM" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Kya Kaam/Subject Padhna Hai?</label>
+                        <input type="text" id="task" required placeholder="e.g., Physics, Web Development" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">Add To Schedule</button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Aapka Time-Table</h2>
+                <div id="timetableDisplay" class="space-y-4">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('timetableForm');
+
+        async function fetchTimetable() {
+            const res = await fetch('timetable_server.php');
+            const data = await res.json();
+            const display = document.getElementById('timetableDisplay');
+            display.innerHTML = '';
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            
+            days.forEach(day => {
+                const dayTasks = data.filter(item => item.day === day);
+                if(dayTasks.length > 0) {
+                    let dayHtml = `<div class="mb-4 border-b pb-2"><h3 class="font-bold text-indigo-600">${day}</h3><ul class="mt-2 space-y-2">`;
+                    dayTasks.forEach(task => {
+                        dayHtml += `
+                            <li class="flex justify-between items-center bg-gray-50 p-2 rounded text-sm">
+                                <span><strong class="text-gray-700">${task.timeSlot}:</strong> ${task.task}</span>
+                                <button onclick="deleteSlot('${task.id}')" class="text-red-500 hover:text-red-700 font-medium text-xs">Remove</button>
+                            </li>`;
+                    });
+                    dayHtml += `</ul></div>`;
+                    display.innerHTML += dayHtml;
+                }
+            });
+
+            if(display.innerHTML === '') {
+                display.innerHTML = '<p class="text-gray-400 italic text-sm">Abhi tak koi routine set nahi kiya gaya hai.</p>';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const day = document.getElementById('day').value;
+            const timeSlot = document.getElementById('timeSlot').value;
+            const task = document.getElementById('task').value;
+
+            await fetch('timetable_server.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', day, timeSlot, task })
+            });
+            form.reset();
+            fetchTimetable();
+        });
+
+        async function deleteSlot(id) {
+            if(confirm('Is slot ko hata dein?')) {
+                await fetch('timetable_server.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                fetchTimetable();
+            }
+        }
+        fetchTimetable();
+    </script>
+</body>
+</html>

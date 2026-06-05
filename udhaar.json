@@ -1,0 +1,19 @@
+[
+    {
+        "id": "6a20257e56f7c",
+        "friendName": "vipin ",
+        "amount": 120,
+        "type": "kaju",
+        "description": "travel",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a202aa333e03",
+        "friendFrom": "vipin",
+        "friendTo": "kaju",
+        "amount": 140,
+        "description": "normal pay",
+        "date": "2026-06-03",
+        "status": "settled"
+    }
+]

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Room Rent & Bill Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Navigation -->
+        <div class="mb-4">
+            <a href="index.html" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Dashboard</a>
+        </div>
+
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">🏠 Room Rent & Bill Manager</h1>
+            <p class="text-gray-500 mt-1">Room rent, electricity meter readings, aur bills ka safe record</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Form Card (Enctype lagana zaroori hai file upload ke liye) -->
+            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Is Mahine Ka Bill</h2>
+                <form id="roomForm" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Mahina (Month)</label>
+                        <select id="monthName" name="monthName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Room Rent (₹)</label>
+                        <input type="number" id="rentAmount" name="rentAmount" required placeholder="e.g., 5000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Meter Reading (Units)</label>
+                        <input type="text" id="meterReading" name="meterReading" placeholder="e.g., 4250 kWh" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Bijli Bill (₹)</label>
+                        <input type="number" id="ebillAmount" name="ebillAmount" placeholder="0.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Meter Photo / Receipt</label>
+                        <input type="file" id="meterImage" name="meterImage" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">Save Record</button>
+                </form>
+            </div>
+
+            <!-- List Card -->
+            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Pichle Mahino Ka Hisab</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-400 text-sm uppercase">
+                                <th class="pb-3 font-medium">Month</th>
+                                <th class="pb-3 font-medium">Rent</th>
+                                <th class="pb-3 font-medium">Reading</th>
+                                <th class="pb-3 font-medium">Bill</th>
+                                <th class="pb-3 font-medium">Proof</th>
+                                <th class="pb-3 font-medium text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomTableBody" class="divide-y divide-gray-100 text-sm">
+                            <!-- Data JS se load hoga -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('roomForm');
+
+        // Data Fetch karne ka logic
+        async function fetchRoomData() {
+            const res = await fetch('room_server.php');
+            const data = await res.json();
+            
+            const tableBody = document.getElementById('roomTableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                // Agar image upload ki hai toh link dikhao, nahi toh "No Proof"
+                const imageLink = item.image 
+                    ? `<a href="${item.image}" target="_blank" class="text-indigo-600 hover:underline font-medium">🖼️ View Image</a>` 
+                    : `<span class="text-gray-400 italic">No proof</span>`;
+
+                tableBody.innerHTML += `
+                    <tr class="text-gray-700">
+                        <td class="py-4 font-semibold text-gray-900">${item.monthName}</td>
+                        <td class="py-4">₹${item.rentAmount}</td>
+                        <td class="py-4 text-gray-600">${item.meterReading || 'N/A'}</td>
+                        <td class="py-4 font-medium text-amber-600">₹${item.ebillAmount || '0'}</td>
+                        <td class="py-4">${imageLink}</td>
+                        <td class="py-4 text-center">
+                            <button onclick="deleteRoomRecord('${item.id}')" class="text-red-500 hover:text-red-700 font-medium">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Data Add karne ka logic (Form Data format me bhejenge kyunki file upload ho rhi h)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            const res = await fetch('room_server.php', {
+                method: 'POST',
+                body: formData // No Headers needed for FormData
+            });
+
+            const result = await res.json();
+            if(result.status === 'success') {
+                form.reset();
+                fetchRoomData();
+            }
+        });
+
+        // Delete karne ka logic
+        async function deleteRoomRecord(id) {
+            if(confirm('Kya aap is mahine ka record delete karna chahte hain?')) {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('id', id);
+
+                const res = await fetch('room_server.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    fetchRoomData();
+                }
+            }
+        }
+
+        fetchRoomData();
+    </script>
+</body>
+</html>

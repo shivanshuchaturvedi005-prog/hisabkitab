@@ -1,0 +1,56 @@
+[
+    {
+        "id": "6a1fd631e2a35",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd631e11381.60472466.jpeg",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a1fd63538cc8",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd635373f60.56672901.jpeg",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a1fd635cff7e",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd635ce73f6.29220006.jpeg",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a1fd637851a1",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd6378399e2.55330541.jpeg",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a1fd6385380d",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd638521992.67995491.jpeg",
+        "date": "2026-06-03"
+    },
+    {
+        "id": "6a1fd64646809",
+        "monthName": "January",
+        "rentAmount": 5000,
+        "meterReading": "25",
+        "ebillAmount": 450,
+        "image": "uploads\/meter_6a1fd6464501d8.91296486.jpeg",
+        "date": "2026-06-03"
+    }
+]

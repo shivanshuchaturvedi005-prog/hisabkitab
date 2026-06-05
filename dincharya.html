@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 Rozana Ki Dincharya Log</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="mb-4">
+            <a href="dashboard.php" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Dashboard</a>
+        </div>
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">📝 Rozana Ki Dincharya</h1>
+            <p class="text-gray-500 mt-1">Aaj din bhar me aapne kya-kya kaam kiya, uska track record</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                <h2 class="text-lg font-semibold mb-3 text-gray-700">Dincharya Log Likhein</h2>
+                <form id="dincharyaForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Tareekh (Date)</label>
+                        <input type="date" id="date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Aaj Kya-Kya Kaam Kiye?</label>
+                        <textarea id="logText" rows="6" required placeholder="e.g., Aaj subah 6 baje utha, 3 ghante Coding practice ki, market se room ka saman laya..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">Save Today's Log</button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 space-y-4" id="dincharyaContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('date').valueAsDate = new Date();
+        const form = document.getElementById('dincharyaForm');
+
+        async function fetchLogs() {
+            const res = await fetch('dincharya_server.php');
+            const data = await res.json();
+            const container = document.getElementById('dincharyaContainer');
+            container.innerHTML = '';
+
+            // Sort dates to show recent day on top
+            data.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            data.forEach(log => {
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                        <div class="flex justify-between items-center border-b pb-1.5 mb-2">
+                            <span class="font-bold text-indigo-600 text-sm">📅 Din: ${log.date}</span>
+                            <button onclick="deleteLog('${log.id}')" class="text-gray-400 hover:text-red-500 text-xs font-semibold">Delete Log</button>
+                        </div>
+                        <p class="text-gray-700 text-sm whitespace-pre-line leading-relaxed">${log.logText}</p>
+                    </div>`;
+            });
+
+            if(data.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 italic text-sm">Abhi tak aapne koi daily task history maintain nahi ki hai.</p>';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const date = document.getElementById('date').value;
+            const logText = document.getElementById('logText').value;
+
+            await fetch('dincharya_server.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', date, logText })
+            });
+            form.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            fetchLogs();
+        });
+
+        async function deleteLog(id) {
+            if(confirm('Kya is din ki activity delete karni hai?')) {
+                await fetch('dincharya_server.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                fetchLogs();
+            }
+        }
+        fetchLogs();
+    </script>
+</body>
+</html>

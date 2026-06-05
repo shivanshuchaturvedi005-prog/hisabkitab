@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👥 Dosto Ka Udhaar Hisab-Kitaab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div class="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="mb-4">
+            <a href="index.html" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Kirana/Sabji Tracker</a>
+        </div>
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">👥 Dosto Ka Udhaar Hisab-Kitaab</h1>
+            <p class="text-gray-500 mt-1">Kis dost se lekar kis dost ko paisa dena hai, sab ek jagah</p>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div class="bg-emerald-50 p-5 rounded-xl border border-emerald-200">
+                <p class="text-sm font-medium text-emerald-600 uppercase">🟢 Total Paisa Jo Lena Hai</p>
+                <p id="totalLena" class="text-3xl font-bold text-emerald-700">₹0.00</p>
+            </div>
+            <div class="bg-rose-50 p-5 rounded-xl border border-rose-200">
+                <p class="text-sm font-medium text-rose-600 uppercase">🔴 Total Paisa Jo Dena Hai</p>
+                <p id="totalDena" class="text-3xl font-bold text-rose-700">₹0.00</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Naya Hisab Jodein</h2>
+                <form id="udhaarForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Kisse Paisa Lena Hai? (From)</label>
+                        <input type="text" id="friendFrom" required placeholder="e.g., Rahul" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Kisko Paisa Dena Hai? (To)</label>
+                        <input type="text" id="friendTo" required placeholder="e.g., Amit" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Amount (₹)</label>
+                        <input type="number" id="amount" step="any" required placeholder="0.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Reason / Description</label>
+                        <input type="text" id="description" placeholder="e.g., Party Contri, Room Rent Split" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+                        <input type="date" id="date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">Save Hisab</button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 space-y-6">
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-700">✅ Settle History (Barabar Kiye Hue Hisab)</h2>
+                    <div id="settledLogBox" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <p class="text-gray-400 text-sm italic">Abhi koi settled history nahi hai...</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-700">Len-Den Ki History (Active Pending Entries)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-400 text-sm uppercase">
+                                    <th class="pb-3 font-medium">Len-Den Flow</th>
+                                    <th class="pb-3 font-medium">Details</th>
+                                    <th class="pb-3 font-medium">Status</th>
+                                    <th class="pb-3 font-medium text-right">Amount</th>
+                                    <th class="pb-3 font-medium text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="udhaarTableBody" class="divide-y divide-gray-100 text-sm">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('date').valueAsDate = new Date();
+        const form = document.getElementById('udhaarForm');
+
+        async function fetchUdhaar() {
+            const res = await fetch('udhaar_server.php');
+            const data = await res.json();
+            
+            let totalLena = 0;
+            let totalDena = 0;
+            
+            const tableBody = document.getElementById('udhaarTableBody');
+            const settledBox = document.getElementById('settledLogBox');
+            
+            tableBody.innerHTML = '';
+            settledBox.innerHTML = '';
+
+            let hasSettled = false;
+
+            data.forEach(item => {
+                const amt = parseFloat(item.amount) || 0;
+
+                if (item.status === 'settled') {
+                    hasSettled = true;
+                    // Render into Settle History box
+                    settledBox.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-lg border border-emerald-100 bg-emerald-50/40 text-xs">
+                            <div>
+                                <p class="font-bold text-gray-800">${item.friendFrom} ➡️ ${item.friendTo}</p>
+                                <p class="text-gray-500 text-[10px] mt-0.5">${item.description || 'No description'} | ${item.date}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-emerald-700">₹${amt.toFixed(2)}</p>
+                                <span class="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">🟢 Settled</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // It is pending, update upper dynamic calculations
+                    totalLena += amt;
+                    totalDena += amt;
+
+                    // Append Rows to Active Log Table
+                    tableBody.innerHTML += `
+                        <tr class="text-gray-700 hover:bg-gray-50 transition-colors">
+                            <td class="py-3 font-medium">
+                                <div class="text-gray-900 font-semibold">${item.friendFrom} <span class="text-indigo-500 font-normal text-xs">se lekar</span></div>
+                                <div class="text-gray-900 font-semibold">${item.friendTo} <span class="text-rose-500 font-normal text-xs">ko dena hai</span></div>
+                            </td>
+                            <td class="py-3">
+                                <p class="font-medium text-gray-700">${item.description || 'No description'}</p>
+                                <p class="text-xs text-gray-400">${item.date}</p>
+                            </td>
+                            <td class="py-3">
+                                <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-800 uppercase tracking-wide">
+                                    🟡 Pending
+                                </span>
+                            </td>
+                            <td class="py-3 text-right font-bold text-indigo-600">
+                                ₹${amt.toFixed(2)}
+                            </td>
+                            <td class="py-3 text-center">
+                                <button onclick="settleUdhaar('${item.id}')" class="text-indigo-600 hover:text-emerald-600 font-bold text-xs border border-indigo-200 hover:border-emerald-300 rounded px-2 py-1 transition bg-indigo-50/50 hover:bg-emerald-50">Settle Hisab</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (!hasSettled) {
+                settledBox.innerHTML = '<p class="text-gray-400 text-sm italic">Abhi koi settled history nahi hai...</p>';
+            }
+
+            // Update Header Dashboards
+            document.getElementById('totalLena').innerText = '₹' + totalLena.toFixed(2);
+            document.getElementById('totalDena').innerText = '₹' + totalDena.toFixed(2);
+        }
+
+        // Add New Entry
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const friendFrom = document.getElementById('friendFrom').value;
+            const friendTo = document.getElementById('friendTo').value;
+            const amount = document.getElementById('amount').value;
+            const description = document.getElementById('description').value;
+            const date = document.getElementById('date').value;
+
+            const res = await fetch('udhaar_server.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendFrom, friendTo, amount, description, date, action: 'add' })
+            });
+
+            const result = await res.json();
+            if(result.status === 'success') {
+                form.reset();
+                document.getElementById('date').valueAsDate = new Date();
+                fetchUdhaar();
+            }
+        });
+
+        // Settle Udhaar (Soft Delete / Status Flip)
+        async function settleUdhaar(id) {
+            if(confirm('Kya yeh hisab barabar (settle) ho gaya hai?')) {
+                const res = await fetch('udhaar_server.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'settle', id: id })
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    fetchUdhaar();
+                }
+            }
+        }
+
+        // Boot system load
+        fetchUdhaar();
+    </script>
+</body>
+</html>

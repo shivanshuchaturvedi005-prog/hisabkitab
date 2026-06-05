@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 Room Routine & Tasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div class="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Navigation Bar -->
+        <nav class="bg-white shadow-sm rounded-xl p-4 mb-6 flex justify-around font-medium text-sm sm:text-base">
+            <a href="index.html" class="text-indigo-600 hover:text-indigo-800">🛒 Kirana & Sabji</a>
+            <a href="udhaar.html" class="text-indigo-600 hover:text-indigo-800">👥 Dosto Ka Udhaar</a>
+            <a href="room.html" class="text-indigo-600 hover:text-indigo-800">🏠 Room & Meter</a>
+            <a href="routine.html" class="text-indigo-600 hover:text-indigo-800 border-b-2 border-indigo-600 pb-1">📅 Room Routine</a>
+        </nav>
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">📅 Room Routine & Duties</h1>
+            <p class="text-gray-500 mt-1">Room partners ke daily tasks aur duties ka routine manager</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form Card -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Nayi Duty/Task Set Karein</h2>
+                <form id="routineForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Partner Ka Naam</label>
+                        <input type="text" id="partnerName" required placeholder="e.g., Rahul, My Name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Kya Kaam Hai? (Task)</label>
+                        <input type="text" id="task" required placeholder="e.g., Sabji Lana, Room Cleaning, Cooking" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Din (Day)</label>
+                        <select id="day" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Daily">🔁 Daily (Har Roz)</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Waqt (Time Slot)</label>
+                        <input type="text" id="time" placeholder="e.g., Morning 8 AM, Evening" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">Routine Me Jodein</button>
+                </form>
+            </div>
+
+            <!-- List Card -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Routine & Duties Timetable</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-400 text-sm uppercase">
+                                <th class="pb-3 font-medium">Partner Name</th>
+                                <th class="pb-3 font-medium">Assigned Task</th>
+                                <th class="pb-3 font-medium">Day & Time</th>
+                                <th class="pb-3 font-medium text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routineTableBody" class="divide-y divide-gray-100 text-sm">
+                            <!-- JS data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('routineForm');
+
+        async function fetchRoutine() {
+            const res = await fetch('routine_server.php');
+            const data = await res.json();
+            const tableBody = document.getElementById('routineTableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                tableBody.innerHTML += `
+                    <tr class="text-gray-700">
+                        <td class="py-4 font-bold text-indigo-600 text-base">${item.partnerName}</td>
+                        <td class="py-4 font-medium text-gray-800">${item.task}</td>
+                        <td class="py-4">
+                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">${item.day}</span>
+                            <span class="text-xs text-gray-400 block mt-1">${item.time || 'Anytime'}</span>
+                        </td>
+                        <td class="py-4 text-center">
+                            <button onclick="deleteRoutine('${item.id}')" class="text-gray-400 hover:text-red-500 font-medium">Done / Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const partnerName = document.getElementById('partnerName').value;
+            const task = document.getElementById('task').value;
+            const day = document.getElementById('day').value;
+            const time = document.getElementById('time').value;
+
+            await fetch('routine_server.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ partnerName, task, day, time })
+            });
+            form.reset();
+            fetchRoutine();
+        });
+
+        async function deleteRoutine(id) {
+            if(confirm('Kya yeh kaam poora ho gaya h?')) {
+                await fetch('routine_server.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                fetchRoutine();
+            }
+        }
+        fetchRoutine();
+    </script>
+</body>
+</html>
